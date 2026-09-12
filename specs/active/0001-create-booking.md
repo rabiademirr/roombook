@@ -91,6 +91,22 @@ recurring bookings.
   deliberate scope choice already covered by `docs/security.md`'s documented v1 gap, not a new
   risk introduced here — noted, not treated as blocking.
 
+## Review outcome
+
+Independent review (read-only reviewer, diff `85f7296..b9e2155`) found 7 findings across the 6
+review dimensions; performance and layering/forbidden-dependencies were clean. Triage:
+
+- **Fixed (6, real):** missing organizer/title validation (commit `3d45ec8`); conflict test
+  weakness — full-overlap scenario + time-range assertion (`d0bdfbe`); Api test isolation —
+  per-test `WebApplicationFactory` instead of a shared singleton (`22278fd`); plan test-map
+  correction for AC-6 (`33cf430`); missing `end == 18:00` boundary test (`11bc0a6`);
+  one-type-per-file convention violations in 3 files (`3aee572`).
+- **Rejected as noise (1):** a dev-environment-only stack-trace leak on malformed JSON. Verified
+  clean under `ASPNETCORE_ENVIRONMENT=Production` (the config that matters for any real
+  deployment); no acceptance criterion in this spec covers error-detail leakage, and the fix
+  (explicit exception-handling middleware) is a general API hardening concern, not something this
+  feature introduced. Logged as a future hardening idea, not a blocker for spec 0001.
+
 ## Definition of Done
 
 - [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
