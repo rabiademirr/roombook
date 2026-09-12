@@ -1,20 +1,38 @@
 # Conventions
 
-> **Template — filled during bootstrap.** Only rules that are real: every rule here should be
-> either enforced by tooling (preferred) or checked in review. Aspirations don't belong here.
-
 ## Language & framework versions
-<!-- Pin what matters. -->
+
+- C#, .NET 8.
+- ASP.NET Core, Minimal API style (no `[ApiController]` classes).
+- Nullable reference types enabled solution-wide.
 
 ## Naming
-<!-- Files, types, tests, branches — whatever the team must keep consistent. -->
+
+- PascalCase for types and public members; one public type per file, filename = type name.
+- camelCase for locals and parameters.
+- Projects: `RoomBook.Domain`, `RoomBook.Application`, `RoomBook.Infrastructure`, `RoomBook.Api`,
+  mirrored by `RoomBook.Domain.Tests`, `RoomBook.Application.Tests`, `RoomBook.Api.Tests`.
+- Test naming: class `<TypeUnderTest>Tests`; method `MethodName_Scenario_ExpectedResult`.
 
 ## Error handling
-<!-- The one blessed pattern. What never leaks to users. -->
+
+- Expected business-rule violations (BR-1..6, conflicts) are returned as a typed `Result<T>`
+  outcome (e.g. Ok / Conflict / Invalid) from Application-layer services — never thrown as
+  exceptions.
+- Exceptions are reserved for true bugs/unexpected failures, not for rule violations.
+- The Api layer maps outcomes to HTTP status codes (Ok→200/201, Conflict→409, Invalid→400) and
+  never leaks exception details or stack traces in a response body.
 
 ## Data rules
-<!-- e.g. money/percentages use decimal types; timestamps are UTC; IDs are ... -->
+
+- All timestamps are UTC, ISO-8601, represented as `DateTimeOffset` — never local/unspecified
+  `DateTime`.
+- Room IDs are stable string slugs (e.g. `"alpha"`) — rooms are fixed/pre-seeded with no
+  discovery endpoint, so callers need a human-referenceable identifier that survives restarts.
+- Booking IDs are server-generated `Guid`.
 
 ## Enforced by tooling
-<!-- List what the compiler/linter/analyzers already enforce, so review doesn't re-litigate it.
-Wire new rules into `scripts/check` whenever possible — prose is advice, tooling is law. -->
+
+- `dotnet build --nologo -warnaserror` — treats warnings (including nullability) as errors.
+- `dotnet test --nologo` — full suite must be green.
+- Wired into `scripts/check.conf` once the solution exists (see report — currently a no-op).
