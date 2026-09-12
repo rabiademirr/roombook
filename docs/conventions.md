@@ -27,7 +27,9 @@
 
 - All timestamps are UTC, ISO-8601, represented as `DateTimeOffset` — never local/unspecified
   `DateTime`.
-- Room and Booking IDs are `Guid` (assumption — no ID scheme was specified; revisit if wrong).
+- Room IDs are stable string slugs (e.g. `"alpha"`) — rooms are fixed/pre-seeded with no
+  discovery endpoint, so callers need a human-referenceable identifier that survives restarts.
+- Booking IDs are server-generated `Guid`.
 
 ## Enforced by tooling
 
