@@ -40,4 +40,3 @@ direction so persistence can be swapped later without touching business rules.
 - Recurring bookings.
 - Room capacity / attendee-count checks.
 - Alternative-room suggestions (free-slot suggestions cover the requested room only).
-</content>

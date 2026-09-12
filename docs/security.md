@@ -25,4 +25,3 @@
 ## Review lens
 Security is a mandatory dimension of every independent review (see `prompts/review.md`), not a
 separate afterthought phase.
-</content>

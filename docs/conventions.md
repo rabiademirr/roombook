@@ -34,4 +34,3 @@
 - `dotnet build --nologo -warnaserror` — treats warnings (including nullability) as errors.
 - `dotnet test --nologo` — full suite must be green.
 - Wired into `scripts/check.conf` once the solution exists (see report — currently a no-op).
-</content>

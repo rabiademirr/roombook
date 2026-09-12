@@ -27,4 +27,3 @@ Weakening asserts, deleting, or skipping tests to reach green is forbidden. A re
 
 ## Determinism
 Flaky tests are fixed, not retried or skipped — see R-03. Evidence of a fix: 5 consecutive green runs.
-</content>

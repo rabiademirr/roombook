@@ -37,4 +37,4 @@ room. Business rules & terms → `docs/domain.md`. Module layout → `docs/archi
 | Processes & gates | `workflows/` |
 | Reusable prompts & recovery ramps | `prompts/` |
 | The single verification command | `scripts/check` |
-</content>
+

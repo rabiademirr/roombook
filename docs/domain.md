@@ -28,4 +28,3 @@
   never as a post-hoc cleanup.
 - Every persisted Booking already satisfies BR-1, BR-4, BR-6 by construction — invalid states are
   never stored, even transiently.
-</content>
