@@ -1,13 +1,14 @@
 # AGENTS.md — Project Rules
 
-> **STATUS: NOT CONFIGURED.** This workspace has not been adapted to a project yet.
-> The only correct first action is the bootstrap workflow (`workflows/bootstrap.md`).
-> Until bootstrap completes and rewrites this file, do not write application code.
+## Project summary
+
+**RoomBook** — a meeting-room booking API for a single office. V1: in-memory storage, no auth,
+UTC only. Detects room-booking conflicts (BR-2/BR-3) and suggests free slots on the requested
+room. Business rules & terms → `docs/domain.md`. Module layout → `docs/architecture.md`.
 
 ## Operating mode
 
-**Mode: unset** — bootstrap sets this to `lite` or `strict` (see `workflows/README.md`).
-Every workflow honors the gates of the current mode.
+**Mode: lite** — Spec → Plan → **[GATE: human]** → Build → Independent Review → Verify.
 
 ## Invariant rules (these survive bootstrap — never delete or weaken them)
 
@@ -36,3 +37,4 @@ Every workflow honors the gates of the current mode.
 | Processes & gates | `workflows/` |
 | Reusable prompts & recovery ramps | `prompts/` |
 | The single verification command | `scripts/check` |
+</content>

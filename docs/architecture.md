@@ -1,25 +1,43 @@
 # Architecture
 
-> **Template — filled during bootstrap.** Describe the architecture you *decided on*, not an
-> aspiration. Agents read this file before planning; vague answers here become vague code.
-
 ## System overview
-<!-- 3–6 sentences: what the system is, its architectural style (monolith / modular monolith /
-services / etc.), and the one-line reason for that choice (link the ADR). -->
+
+RoomBook is a meeting-room booking API for a single office (v1: in-memory storage, no auth,
+single timezone/UTC). It exposes HTTP endpoints to create bookings and query availability,
+rejecting conflicts (BR-2/BR-3) and suggesting free slots on the requested room when a request
+can't be satisfied. Style: modular monolith, one .NET solution, layered strictly by dependency
+direction so persistence can be swapped later without touching business rules.
 
 ## Modules / components and ownership
-<!-- One row per module: single responsibility + the data it owns (conceptual, not table-level). -->
 
 | Module | Single responsibility | Owns |
 |---|---|---|
-| | | |
+| RoomBook.Domain | Entities and business-rule invariants (BR-1..6) | `Room`, `Booking` |
+| RoomBook.Application | Use-case orchestration: create booking, find free slots | Use-case services, `Result` outcome types, repository interfaces |
+| RoomBook.Infrastructure | In-memory storage implementing Application's repository interfaces | In-memory Room/Booking store |
+| RoomBook.Api | HTTP surface: minimal API endpoints, DTOs, validation, status-code mapping | HTTP request/response contracts |
 
 ## Communication rules
-<!-- When is a direct call allowed, when an event/message, when is it forbidden? -->
+
+- Strict one direction: Api → Application → Domain.
+- Infrastructure implements interfaces declared in Application; Application never references
+  Infrastructure directly — only via DI at the Api composition root.
+- Api never touches Domain types directly — always through an Application service.
 
 ## Forbidden dependencies (make them testable)
-<!-- Concrete prohibitions an architecture test could assert, e.g.
-"Module A never accesses Module B's internal types or storage — only its public interface." -->
+
+- Domain references nothing outside itself — no Application, Infrastructure, Api, or ASP.NET Core
+  package.
+- Application never references Infrastructure or Api, and carries no ASP.NET Core package
+  reference.
+- (Assert with an architecture test, e.g. NetArchTest, in RoomBook.Application.Tests.)
 
 ## Deliberately out of scope
-<!-- Conscious non-goals for the current version. -->
+
+- Persistence beyond in-memory (no database/ORM).
+- Authentication/authorization.
+- Multi-office or multi-timezone support.
+- Recurring bookings.
+- Room capacity / attendee-count checks.
+- Alternative-room suggestions (free-slot suggestions cover the requested room only).
+</content>
