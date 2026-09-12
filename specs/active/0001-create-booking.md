@@ -107,12 +107,30 @@ review dimensions; performance and layering/forbidden-dependencies were clean. T
   (explicit exception-handling middleware) is a general API hardening concern, not something this
   feature introduced. Logged as a future hardening idea, not a blocker for spec 0001.
 
+## QA verification outcome
+
+Independent QA pass (separate read-only agent, per invariant #3) mapped every AC to a named,
+re-read, non-tautological passing test — all 16 criteria have real evidence, `./scripts/check`
+green (36/36 at the time of the pass). It found one real coverage gap: `FreeSlotFinder`'s gap
+computation (the cursor/sorted-bookings loop) was only exercised against a fully-empty or
+fully-booked day, never against real partial bookings — the exact scenario AC-14 describes. Fixed
+(commit `7b49b4f`): added a case with two non-adjacent existing bookings, asserting the exact
+ranked slot list; passed on first run.
+
+Lower-value gaps noted but accepted, not fixed (diminishing returns for a v1 prototype): 7 of 16
+ACs (AC-3/4/5/8/9/11/12) have Domain-level evidence only, no Application/Api-level test for that
+specific geometry — acceptable because the wiring connecting them (`CreateBookingService`'s single
+overlap check, `Program.cs`'s single Invalid→400 mapping) is generic and already proven by the ACs
+that do have integration-level tests (AC-2, AC-6, AC-7, AC-10). The plan's criterion↔test map also
+has some stale test names from early refactors (cosmetic documentation drift, not re-verified
+against the repo) — left as a known follow-up rather than reworked here.
+
 ## Definition of Done
 
-- [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
-- [ ] `scripts/check` green
-- [ ] Independent review done; real findings fixed, noise rejected with written rationale
-- [ ] Docs / ADRs updated if behavior or architecture changed
+- [x] Every acceptance criterion mapped to proof (test or reproducible observation)
+- [x] `scripts/check` green
+- [x] Independent review done; real findings fixed, noise rejected with written rationale
+- [x] Docs / ADRs updated if behavior or architecture changed
 - [ ] Spec moved to `specs/done/` (it becomes immutable there)
 
 ## Scorecard (fill at ship — honest numbers make the process improvable)
