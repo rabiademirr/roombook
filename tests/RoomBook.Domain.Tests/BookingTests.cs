@@ -29,6 +29,15 @@ public class BookingTests
     }
 
     [Fact]
+    public void TryCreate_EndsExactlyAtBusinessHoursEnd_Succeeds()
+    {
+        var ok = Booking.TryCreate("alpha", Utc(17, 45), Utc(18, 0), "Ada", "Standup", out _, out var violations);
+
+        Assert.True(ok);
+        Assert.Empty(violations);
+    }
+
+    [Fact]
     public void TryCreate_StartsBeforeBusinessHours_ReturnsOutsideBusinessHours()
     {
         var ok = Booking.TryCreate("alpha", Utc(8, 45), Utc(9, 0), "Ada", "Standup", out _, out var violations);
