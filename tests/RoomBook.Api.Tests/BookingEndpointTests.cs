@@ -80,14 +80,14 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     }
 
     [Fact]
-    public async Task CreateBooking_ConflictingRequest_Returns409WithConflictAndSuggestionDetails()
+    public async Task CreateBooking_FullOverlap_Returns409WithConflictDetails()
     {
         using var client = _factory.CreateClient();
         var first = new CreateBookingRequest("gamma", Utc(9, 0), Utc(9, 30), "Grace", "Planning");
         var firstResponse = await client.PostAsJsonAsync("/bookings", first);
         Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
 
-        var conflicting = new CreateBookingRequest("gamma", Utc(9, 15), Utc(9, 45), "Ada", "Standup");
+        var conflicting = new CreateBookingRequest("gamma", Utc(9, 0), Utc(9, 30), "Ada", "Standup");
         var response = await client.PostAsJsonAsync("/bookings", conflicting);
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -95,6 +95,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
         Assert.NotNull(body);
         Assert.Single(body!.Conflicts);
         Assert.Equal("Grace", body.Conflicts[0].Organizer);
+        Assert.Equal(Utc(9, 0), body.Conflicts[0].Start);
+        Assert.Equal(Utc(9, 30), body.Conflicts[0].End);
         Assert.NotEmpty(body.Suggestions);
     }
 
