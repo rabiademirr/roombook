@@ -2,14 +2,6 @@ using RoomBook.Domain;
 
 namespace RoomBook.Application;
 
-public enum CreateBookingOutcomeKind
-{
-    Created,
-    Invalid,
-    RoomNotFound,
-    Conflict,
-}
-
 public sealed class CreateBookingResult
 {
     public CreateBookingOutcomeKind Kind { get; }
