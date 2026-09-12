@@ -1,0 +1,109 @@
+# Spec 0001 — Create booking with conflict detection and free-slot suggestions
+
+- Status: Draft
+- Mode: lite (from AGENTS.md at creation time)
+- Plan: `specs/plans/0001-plan.md`
+
+## Intent
+
+RoomBook needs an operation for booking a meeting room: given a room and a requested time range,
+the system either confirms the booking or rejects it when it conflicts with an existing booking
+on that room. On rejection, the caller needs enough information to act — which existing
+booking(s) block the request, and where the nearest actually-free slots are on that same room.
+Success looks like: a caller requests a slot and gets a definitive, actionable answer (booked, or
+here's what's blocking you and here's what *is* open) without polling or guessing. Deliberately
+not being done here: room creation/management, authentication, alternative-room suggestions, or
+recurring bookings.
+
+## Requirements
+
+- A caller can request a booking by specifying a room, a start time, and an end time.
+- Rooms come from a small, fixed, pre-seeded set (room management is out of scope for this spec).
+- A request succeeds only if it satisfies every business rule in `docs/domain.md` (BR-1..BR-6):
+  within business hours, 15 minutes to 4 hours long, 15-minute-aligned, UTC/ISO-8601, and
+  non-overlapping with every existing booking on that room (touching boundaries are not overlaps).
+- A request that violates a business rule (hours, duration, alignment) is rejected as **invalid**
+  — distinct from a rejection caused by a scheduling conflict.
+- A request for a room outside the fixed seed set is rejected as **not found** — distinct from
+  both invalid and conflict rejections.
+- A request that overlaps one or more existing bookings on the same room is rejected as a
+  **conflict**. The rejection identifies *every* existing booking that overlaps (there may be
+  more than one — e.g. a long request spanning two shorter existing bookings), each with its time
+  range and organizer.
+- A conflict rejection also includes up to 3 free slots on the *same* room, matching the
+  requested duration, within the *same business day* as the request, chosen by absolute distance
+  from the requested start time (candidates before and after the request are both considered; on
+  a tie, prefer the later slot). If fewer than 3 such slots exist — including none — the response
+  reflects that (an empty list is a valid, non-error outcome, not a failure).
+
+## Constraints & out of scope
+
+- No authentication/authorization (v1 scope, `docs/security.md`) — every request is treated as
+  trusted.
+- No room creation, editing, or deletion — the seed set is fixed for this spec.
+- No suggestions on rooms other than the one requested.
+- No persistence beyond in-memory storage — data does not survive a restart.
+- No recurring bookings, no attendee-count/capacity checks.
+- Suggestions never cross into the next business day.
+
+## Acceptance criteria
+
+- [ ] AC-1 — A valid request (in business hours, 15min–4h, 15-min aligned, no conflict) on a
+      seeded room succeeds.
+- [ ] AC-2 — A request that fully overlaps an existing booking is rejected as a conflict, and the
+      response lists that booking's time range and organizer.
+- [ ] AC-3 — A request that overlaps only the start of an existing booking is rejected as a
+      conflict.
+- [ ] AC-4 — A request that overlaps only the end of an existing booking is rejected as a
+      conflict.
+- [ ] AC-5 — A request that fully contains a shorter existing booking is rejected as a conflict.
+- [ ] AC-6 — A request spanning two separate existing bookings (with a gap between them) is
+      rejected and **both** existing bookings are listed as conflicts.
+- [ ] AC-7 — A request that starts exactly when an existing booking ends succeeds (back-to-back,
+      BR-3) — not treated as a conflict.
+- [ ] AC-8 — A request that ends exactly when an existing booking starts succeeds (back-to-back
+      on the other side).
+- [ ] AC-9 — A request starting before 09:00 UTC or ending after 18:00 UTC is rejected as
+      **invalid** (BR-1), distinct from a conflict rejection.
+- [ ] AC-10 — A request shorter than 15 minutes is rejected as invalid (BR-4).
+- [ ] AC-11 — A request longer than 4 hours is rejected as invalid (BR-4).
+- [ ] AC-12 — A request whose start or end isn't aligned to a 15-minute increment is rejected as
+      invalid (BR-6).
+- [ ] AC-13 — A request for a room not in the seed set is rejected as **not found**, distinct
+      from invalid and conflict rejections, and includes no conflicts or suggestions.
+- [ ] AC-14 — A conflict rejection includes up to 3 free slots on the same room, matching the
+      requested duration, within the same business day, ordered by distance from the requested
+      start time.
+- [ ] AC-15 — When the room has no free slot of the requested duration left in the business day,
+      the conflict rejection has an empty suggestions list (not an error).
+- [ ] AC-16 — All times in requests and responses are UTC, ISO-8601 (BR-5).
+
+## Self-critique (gaps found, resolved per lite mode — state assumption, proceed unless objected)
+
+- **Gap:** No explicit tie-break rule when two candidate free slots are equally distant (one
+  earlier, one later). **Resolution:** prefer the later slot on ties (added to Requirements above).
+- **Gap:** "Overlap" wasn't explicit about the case where the *existing* booking is entirely
+  inside the *requested* range (full containment), not just partial overlap. **Resolution:**
+  added as AC-5, explicitly a conflict.
+- **Gap:** Unclear whether a not-found room should still compute conflicts/suggestions.
+  **Resolution:** no — not-found short-circuits before any conflict/suggestion logic (AC-13).
+- **Gap:** Exposing an existing booking's organizer name to any caller (no-auth v1) is a
+  deliberate scope choice already covered by `docs/security.md`'s documented v1 gap, not a new
+  risk introduced here — noted, not treated as blocking.
+
+## Definition of Done
+
+- [ ] Every acceptance criterion mapped to proof (test or reproducible observation)
+- [ ] `scripts/check` green
+- [ ] Independent review done; real findings fixed, noise rejected with written rationale
+- [ ] Docs / ADRs updated if behavior or architecture changed
+- [ ] Spec moved to `specs/done/` (it becomes immutable there)
+
+## Scorecard (fill at ship — honest numbers make the process improvable)
+| Metric | Value |
+|---|---|
+| Spec revisions | |
+| Fix rounds | |
+| Review findings: real / noise | |
+| Regressions introduced | |
+| Bugs escaped to production | |
