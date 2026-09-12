@@ -5,19 +5,16 @@ using RoomBook.Api;
 
 namespace RoomBook.Api.Tests;
 
-public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public class BookingEndpointTests
 {
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public BookingEndpointTests(WebApplicationFactory<Program> factory) => _factory = factory;
-
     private static DateTimeOffset Utc(int hour, int minute) =>
         new(2026, 9, 14, hour, minute, 0, TimeSpan.Zero);
 
     [Fact]
     public async Task CreateBooking_ValidRequest_Returns201()
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var request = new CreateBookingRequest("alpha", Utc(9, 0), Utc(9, 30), "Ada", "Standup");
 
         var response = await client.PostAsJsonAsync("/bookings", request);
@@ -31,7 +28,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task CreateBooking_UnknownRoom_Returns404NoConflictsOrSuggestions()
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var request = new CreateBookingRequest("unknown-room", Utc(9, 0), Utc(9, 30), "Ada", "Standup");
 
         var response = await client.PostAsJsonAsync("/bookings", request);
@@ -49,7 +47,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [InlineData("Ada", "")]
     public async Task CreateBooking_MissingOrganizerOrTitle_Returns400(string? organizer, string? title)
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var payload = new
         {
             RoomId = "alpha",
@@ -69,7 +68,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task CreateBooking_InvalidDuration_Returns400()
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var request = new CreateBookingRequest("beta", Utc(9, 0), Utc(9, 0), "Ada", "Standup");
 
         var response = await client.PostAsJsonAsync("/bookings", request);
@@ -82,7 +82,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task CreateBooking_FullOverlap_Returns409WithConflictDetails()
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var first = new CreateBookingRequest("gamma", Utc(9, 0), Utc(9, 30), "Grace", "Planning");
         var firstResponse = await client.PostAsJsonAsync("/bookings", first);
         Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
@@ -103,7 +104,8 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
     [Fact]
     public async Task CreateBooking_ResponseTimes_AreUtc()
     {
-        using var client = _factory.CreateClient();
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
         var request = new CreateBookingRequest("alpha", Utc(10, 0), Utc(10, 30), "Ada", "1:1");
 
         var response = await client.PostAsJsonAsync("/bookings", request);
