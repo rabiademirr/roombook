@@ -41,6 +41,31 @@ public class BookingEndpointTests : IClassFixture<WebApplicationFactory<Program>
         Assert.NotNull(body);
     }
 
+    [Theory]
+    [InlineData(null, "Standup")]
+    [InlineData("", "Standup")]
+    [InlineData("   ", "Standup")]
+    [InlineData("Ada", null)]
+    [InlineData("Ada", "")]
+    public async Task CreateBooking_MissingOrganizerOrTitle_Returns400(string? organizer, string? title)
+    {
+        using var client = _factory.CreateClient();
+        var payload = new
+        {
+            RoomId = "alpha",
+            Start = Utc(11, 0),
+            End = Utc(11, 30),
+            Organizer = organizer,
+            Title = title,
+        };
+
+        var response = await client.PostAsJsonAsync("/bookings", payload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<InvalidBookingResponse>();
+        Assert.NotEmpty(body!.Violations);
+    }
+
     [Fact]
     public async Task CreateBooking_InvalidDuration_Returns400()
     {

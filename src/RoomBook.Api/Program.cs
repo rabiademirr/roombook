@@ -12,6 +12,14 @@ var app = builder.Build();
 
 app.MapPost("/bookings", (CreateBookingRequest request, CreateBookingService service) =>
 {
+    var fieldViolations = new List<string>();
+    if (string.IsNullOrWhiteSpace(request.Organizer))
+        fieldViolations.Add("MissingOrganizer");
+    if (string.IsNullOrWhiteSpace(request.Title))
+        fieldViolations.Add("MissingTitle");
+    if (fieldViolations.Count > 0)
+        return Results.BadRequest(new InvalidBookingResponse(fieldViolations));
+
     var result = service.CreateBooking(request.RoomId, request.Start, request.End, request.Organizer, request.Title);
 
     return result.Kind switch
